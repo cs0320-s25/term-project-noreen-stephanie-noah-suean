@@ -63,6 +63,11 @@ output_rows = []
 header = ["Course Code", "Course Name"] + list(semester_to_srcdb.keys())
 
 def parse_prereq_html(html):
+    '''parses JSON response from CAB for a specific course's prerequisties into the format
+    [{}, {}] based on OR and AND relationships. Looks into either the 
+    "registration_requirements" field in the JSON or the description to find
+    the prerequisites.
+    '''
     if not html or not isinstance(html, str):
         return []
 
@@ -124,6 +129,9 @@ def parse_prereq_html(html):
     return prereqs
 
 def fetch_course_details(crn, srcdb, course_code):
+    '''loops through each course in a JSON for a semeester and sends post request 
+    for each course. Calls on parse_prereq_html() to parse through the JSON
+    '''
     detail_path = os.path.join(details_base_path, f"{course_code.replace(' ', '_')}-{srcdb}.json")
 
     def should_refresh(data):
