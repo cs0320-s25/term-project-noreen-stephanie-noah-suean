@@ -147,15 +147,18 @@ for course in sorted(non_csci_courses):
         # Look for matching course code in results
         results = data.get("results", [])
         found = len(results) > 0
-        if found and not found_title:
-            for result in results:
-                if result.get("code", "").strip() == course:
-                    found_title = result.get("title", "").strip()
-                    break
-            # fallback if exact match isn't found
-            if not found_title:
-                found_title = results[0].get("title", "").strip()
 
+        # update that the course is being offered that semester 
+        if found:
+            course_offerings[course][semester] = True  
+
+        if found:
+            for result in results:
+                code = result.get("code", "").strip()
+                if code == course:
+                    found_title = result.get("title", "").strip()
+                    course_offerings[course][semester] = True
+                    break
 
     course_titles[course] = found_title or ""
 
