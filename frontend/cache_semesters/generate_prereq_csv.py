@@ -72,22 +72,22 @@ def parse_prereq_html(html):
         return []
 
     soup = BeautifulSoup(html, "html.parser")
-
-    # Use <p class="prereq"> if available, otherwise fall back to entire soup
     prereq_block = soup.find("p", class_="prereq") or soup
 
     prereqs = []
     current_group = []
-    is_concurrent = False
-    last_was_course = False
-
     has_links = False
+    is_concurrent = False
 
     for node in prereq_block.descendants:
         if isinstance(node, str):
-            if 'or' in node.strip().lower():
-                continue
-            last_was_course = False
+            text = node.strip().lower()
+            if 'or' in text:
+                continue  # stay in the same OR group
+            elif 'and' in text or '.' in text:
+                if current_group:
+                    prereqs.append(set(current_group))
+                    current_group = []
             continue
 
         if node.name == "a":
@@ -97,7 +97,7 @@ def parse_prereq_html(html):
                 continue
             code = code.replace("code:", "").strip()
 
-            # Check for concurrency
+            # Check for concurrency marker
             sibling = node.find_next_sibling()
             while sibling and sibling.name == "sup":
                 if "*" in sibling.get_text():
@@ -108,23 +108,20 @@ def parse_prereq_html(html):
                 code += "*"
             current_group.append(code)
             is_concurrent = False
-            last_was_course = True
 
-        elif node.name in {"br", "p"} or (isinstance(node, str) and "." in node):
-            if current_group:
-                prereqs.append(set(current_group))
-                current_group = []
-            last_was_course = False
-
-    # Add any final group
     if current_group:
         prereqs.append(set(current_group))
 
-    # Fallback for non-link HTML (use regex)
-    if not has_links:
-        codes = re.findall(r"\b([A-Z]{2,4})\s?(\d{4})\b", html)
-        if codes:
-            prereqs.append(set(f"{subject} {number}" for subject, number in codes))
+    # Fallback for plain-text descriptions if no <a> tags found
+    if not has_links and not prereqs:
+        if "prerequisite" in html.lower():
+            found_groups = re.findall(r"(CSCI|MATH|APMA|DATA|ENGN)\s?\d{4}(\*?)", html)
+            codes = set()
+            for subject, star in found_groups:
+                course = f"{subject} {star if star else ''}".strip()
+                codes.add(course)
+            if codes:
+                prereqs.append(codes)
 
     return prereqs
 
@@ -132,6 +129,10 @@ def fetch_course_details(crn, srcdb, course_code):
     '''loops through each course in a JSON for a semeester and sends post request 
     for each course. Calls on parse_prereq_html() to parse through the JSON
     '''
+
+    if crn is None:
+        raise ValueError(f"Missing CRN for {course_code} in {srcdb}")
+
     detail_path = os.path.join(details_base_path, f"{course_code.replace(' ', '_')}-{srcdb}.json")
 
     def should_refresh(data):
@@ -193,8 +194,8 @@ for semester, srcdb in semester_to_srcdb.items():
         course_sections[course_code].append(item)
 
     for course_code, sections in course_sections.items():
-        # Pick the first section with "no" starting with "S" (i.e. a lecture section)
-        lecture = next((sec for sec in sections if sec.get("no", "").startswith("S")), None)
+        # Pick the first section with "no" starting with "S" (i.e. a lecture section)# Correctly pick the first valid lecture section with a CRN
+        lecture = next((sec for sec in sections if sec.get("no", "").startswith("S") and sec.get("crn")), None)
         if not lecture:
             continue
 
