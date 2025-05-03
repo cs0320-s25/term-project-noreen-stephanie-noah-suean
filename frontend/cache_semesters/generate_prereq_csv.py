@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import csv
 import time
@@ -66,25 +67,32 @@ def parse_prereq_html(html):
         return []
 
     soup = BeautifulSoup(html, "html.parser")
-    prereq_p = soup.find("p", class_="prereq")
-    if not prereq_p:
-        return []
+
+    # Use <p class="prereq"> if available, otherwise fall back to entire soup
+    prereq_block = soup.find("p", class_="prereq") or soup
 
     prereqs = []
     current_group = []
     is_concurrent = False
     last_was_course = False
 
-    for node in prereq_p.descendants:
-        if isinstance(node, str) and 'or' in node.strip().lower():
-            # We're in an OR chain
+    has_links = False
+
+    for node in prereq_block.descendants:
+        if isinstance(node, str):
+            if 'or' in node.strip().lower():
+                continue
+            last_was_course = False
             continue
 
         if node.name == "a":
-            code = node.get("data-group", "").replace("code:", "").strip()
-            if not code:
+            has_links = True
+            code = node.get("data-group", "")
+            if not code.startswith("code:"):
                 continue
+            code = code.replace("code:", "").strip()
 
+            # Check for concurrency
             sibling = node.find_next_sibling()
             while sibling and sibling.name == "sup":
                 if "*" in sibling.get_text():
@@ -97,17 +105,21 @@ def parse_prereq_html(html):
             is_concurrent = False
             last_was_course = True
 
-        elif isinstance(node, str) and last_was_course:
-            # End of a chain (e.g. period or comma not followed by more ORs)
-            text = node.strip().lower()
-            if 'and' in text or '.' in text:
-                if current_group:
-                    prereqs.append(set(current_group))
-                    current_group = []
+        elif node.name in {"br", "p"} or (isinstance(node, str) and "." in node):
+            if current_group:
+                prereqs.append(set(current_group))
+                current_group = []
             last_was_course = False
 
+    # Add any final group
     if current_group:
         prereqs.append(set(current_group))
+
+    # Fallback for non-link HTML (use regex)
+    if not has_links:
+        codes = re.findall(r"\b([A-Z]{2,4})\s?(\d{4})\b", html)
+        if codes:
+            prereqs.append(set(f"{subject} {number}" for subject, number in codes))
 
     return prereqs
 
@@ -187,10 +199,13 @@ for semester, srcdb in semester_to_srcdb.items():
             detail_data = fetch_course_details(crn, srcdb, course_code)
             prereq_html = detail_data.get("registration_restrictions", "")
 
-            prereq_html = detail_data.get("registration_restrictions", "")
             if not prereq_html:
-                prereq_html = detail_data.get("description", "")
-            
+                desc = detail_data.get("description", "")
+                if "prereq" in desc.lower():
+                    prereq_html = desc
+                else:
+                    prereq_html = ""
+
             parsed_prereqs = parse_prereq_html(prereq_html)
 
             match = next((row for row in output_rows if row[0] == course_code), None)
