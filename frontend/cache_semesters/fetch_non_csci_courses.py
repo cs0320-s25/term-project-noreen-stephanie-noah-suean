@@ -122,7 +122,7 @@ for course in sorted(non_csci_courses):
             payload = {
                 "other": {"srcdb": srcdb},
                 "criteria": [
-                    {"field": "search", "value": f"{course}"}, # search for that SPECIFIC course
+                    {"field": "code", "value": course}, # search for that SPECIFIC course
                     {"field": "is_ind_study", "value": "N"},
                     {"field": "is_canc", "value": "N"}
                 ]
@@ -146,7 +146,7 @@ for course in sorted(non_csci_courses):
 
         # Look for matching course code in results
         results = data.get("results", [])
-        found = len(results) > 0
+        found = len(results) > 0 
 
         # update that the course is being offered that semester 
         if found:

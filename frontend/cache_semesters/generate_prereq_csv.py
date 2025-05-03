@@ -194,7 +194,9 @@ for semester, srcdb in semester_to_srcdb.items():
         course_sections[course_code].append(item)
 
     for course_code, sections in course_sections.items():
-        # Pick the first section with "no" starting with "S" (i.e. a lecture section)# Correctly pick the first valid lecture section with a CRN
+        
+        # iterate through EACH section, and pick the first section with "no" starting with "S" 
+        # (AKA lecture section) with a valid CRN
         lecture = next((sec for sec in sections if sec.get("no", "").startswith("S") and sec.get("crn")), None)
         if not lecture:
             continue
