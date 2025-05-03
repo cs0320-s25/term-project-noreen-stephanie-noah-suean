@@ -53,11 +53,7 @@ semester_to_srcdb = {
 # 2. make api request to search for "csci" in a given semester, save response json as cache
 def cache_csci_search_results():
     os.makedirs("cache/search", exist_ok=True)
-    base_url = "https://cab.brown.edu/api/"
-    search_params = {
-        'page': 'fose',
-        'route': 'search',
-    }
+    base_url = "https://cab.brown.edu/api/?page=fose&route=search"
 
     for label, srcdb in semester_to_srcdb.items():
         filename = f"cache/search/CSCI-{srcdb}.json"
@@ -78,16 +74,30 @@ def cache_csci_search_results():
         try:
             response = requests.post(
                 base_url,
-                params=search_params,
                 cookies=cookies,
                 headers=headers,
                 json=payload
             )
             response.raise_for_status()
+            full_data = response.json()
+
+            # Filter to only include courses that have an "S01" section
+            s01_crns = {
+                item["code"] for item in full_data.get("results", [])
+                if item.get("no") == "S01"
+            }
+            filtered_results = [
+                item for item in full_data.get("results", [])
+                if item.get("code") in s01_crns and item.get("no") == "S01"
+            ]
+
+            print(f"[FILTER] {len(filtered_results)} S01 sections retained")
+
             with open(filename, "w") as f:
-                json.dump(response.json(), f, indent=2)
+                json.dump({ "results": filtered_results }, f, indent=2)
+
             print(f"[CACHED] Saved to {filename}")
-            time.sleep(1.0)  # delay between requests to not spam api
+            time.sleep(1.0)  # delay between requests to not spam API
         except Exception as e:
             print(f"[ERROR] {label}: {e}")
 
