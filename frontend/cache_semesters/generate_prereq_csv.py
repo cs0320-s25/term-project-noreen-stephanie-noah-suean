@@ -225,7 +225,7 @@ for semester, srcdb in semester_to_srcdb.items():
                 output_rows.append(match)
 
             idx = header.index(semester)
-            match[idx] = str(parsed_prereqs)
+            match[idx] = "[]" if parsed_prereqs else ""
             print(f"[OK] {course_code} ({semester}) → {parsed_prereqs}")
         except Exception as e:
             print(f"[ERROR] {course_code} ({semester}): {e}")
