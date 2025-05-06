@@ -43,10 +43,10 @@ headers = {
 
 # 1. map semester names --> srcdb codes
 semester_to_srcdb = {
-    "Fall 21": "202110", "Winter 21": "202115", "Spring 22": "202120", "Summer 22": "202100",
-    "Fall 22": "202210", "Winter 22": "202215", "Spring 23": "202220", "Summer 23": "202200",
-    "Fall 23": "202310", "Winter 23": "202315", "Spring 24": "202320", "Summer 24": "202300",
-    "Fall 24": "202410", "Winter 24": "202415", "Spring 25": "202420", "Summer 25": "202400",
+    "Fall 21": "202110", "Winter 21": "202115", "Spring 22": "202120", "Summer 22": "202200",
+    "Fall 22": "202210", "Winter 22": "202215", "Spring 23": "202220", "Summer 23": "202300",
+    "Fall 23": "202310", "Winter 23": "202315", "Spring 24": "202320", "Summer 24": "202400",
+    "Fall 24": "202410", "Winter 24": "202415", "Spring 25": "202420", "Summer 25": "202500",
     "Fall 25": "202510", "Winter 25": "202515", "Spring 26": "202520"
 }
 
