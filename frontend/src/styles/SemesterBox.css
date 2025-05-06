@@ -1,6 +1,52 @@
 /* styles/SemesterBox.css */
 
 /* Semester Box Layouts */
+.semester-box {
+  transition: all 0.2s ease-in-out;
+  position: relative; /* Ensure relative positioning for any absolute children */
+}
+
+.semester-box.drag-over {
+  border: 2px dashed #4a90e2;
+  background-color: rgba(74, 144, 226, 0.1);
+}
+
+/* Not droppable state - make this much more visible with black background */
+.semester-box.not-droppable {
+  border: 2px dashed #ff0000;
+  background-color: rgba(0, 0, 0, 0.7); /* Black background as requested */
+  box-shadow: inset 0 0 15px rgba(255, 0, 0, 0.3);
+  cursor: not-allowed;
+  position: relative;
+}
+
+.semester-box.not-droppable .semester-content {
+  opacity: 0.5; /* Dim the content */
+}
+
+.semester-box.not-droppable::after {
+  content: "Course not offered this semester";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #ff0000;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.search-course-block:active,
+.course-slot.filled:active {
+  cursor: grabbing;
+  opacity: 0.7;
+}
+
 .semester-box.expanded {
   display: flex;
   flex-direction: column;
@@ -179,4 +225,62 @@
   /* CHANGE: red border/background */
   border: 2px solid #f44336;
   background-color: #ffebee;
+}
+
+/* Styles for course editing inputs and buttons within CourseDrag.tsx */
+.course-edit input[type="text"] {
+  width: calc(100% - 20px);
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.course-edit button {
+  padding: 8px 12px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.course-edit button:hover {
+  background-color: #45a049;
+}
+
+.course-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+.course-actions .edit-button,
+.course-actions .remove-button {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.course-actions .edit-button {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+}
+
+.course-actions .edit-button:hover {
+  background-color: #1e88e5;
+}
+
+.course-actions .remove-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+}
+
+.course-actions .remove-button:hover {
+  background-color: #e53935;
 }

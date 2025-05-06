@@ -1,16 +1,18 @@
 // import React from "react";
 import "../styles/RightClick.css";
 
-interface RightClickMenuProps {
+export interface RightClickMenuProps {
   position: { x: number; y: number };
   onAddRightSemester: () => void;
   onAddLeftSemester: () => void;
   onDeleteSemester: () => void;
+  className?: string;
 }
 
 const RightClickMenu = (props: RightClickMenuProps) => {
   return (
     <div
+      className={`right-click-menu-class ${props.className || ""}`}
       style={{
         position: "fixed", // Positioned relative to the viewport
         top: `${props.position.y}px`,
