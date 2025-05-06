@@ -33,12 +33,12 @@ function App() {
             <div className="logo">
               <div className="logo-title">
                 <a href="index.html" className="logo-link">
+                  BearTracks
                   <img
                     src="/BearTracks.png"
                     alt="Bear Logo"
                     className="logo-image"
                   />
-                  BearTracks
                 </a>
               </div>
               <progress
