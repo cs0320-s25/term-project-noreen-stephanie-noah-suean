@@ -127,9 +127,16 @@ public class AddCourseHandlerHelper {
         return false;
       }
 
-      if (compareSemesters(prereqSemester, targetSemester) >= 0) {
+      if (prereqCode.contains(*)) {
+        if (compareSemesters(prereqSemester, targetSemester) > 0) {
         return false;
       }
+      else {
+        if (compareSemesters(prereqSemester, targetSemester) >= 0) {
+        return false;
+        }
+      }
+      
 
       // Recursively check prereqs of this prereq
       PrereqTreeNode subTree = catalog.getPrereqTree(prereqCode, prereqSemester);
