@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import csv
 import time
@@ -45,10 +46,10 @@ headers = {
 }
 
 semester_to_srcdb = {
-    "Fall 21": "202110", "Winter 21": "202115", "Spring 22": "202120", "Summer 22": "202100",
-    "Fall 22": "202210", "Winter 22": "202215", "Spring 23": "202220", "Summer 23": "202200",
-    "Fall 23": "202310", "Winter 23": "202315", "Spring 24": "202320", "Summer 24": "202300",
-    "Fall 24": "202410", "Winter 24": "202415", "Spring 25": "202420", "Summer 25": "202400",
+    "Fall 21": "202110", "Winter 21": "202115", "Spring 22": "202120", "Summer 22": "202200",
+    "Fall 22": "202210", "Winter 22": "202215", "Spring 23": "202220", "Summer 23": "202300",
+    "Fall 23": "202310", "Winter 23": "202315", "Spring 24": "202320", "Summer 24": "202400",
+    "Fall 24": "202410", "Winter 24": "202415", "Spring 25": "202420", "Summer 25": "202500",
     "Fall 25": "202510", "Winter 25": "202515", "Spring 26": "202520"
 }
 
@@ -62,29 +63,41 @@ output_rows = []
 header = ["Course Code", "Course Name"] + list(semester_to_srcdb.keys())
 
 def parse_prereq_html(html):
+    '''parses JSON response from CAB for a specific course's prerequisties into the format
+    [{}, {}] based on OR and AND relationships. Looks into either the 
+    "registration_requirements" field in the JSON or the description to find
+    the prerequisites.
+    '''
     if not html or not isinstance(html, str):
         return []
 
     soup = BeautifulSoup(html, "html.parser")
-    prereq_p = soup.find("p", class_="prereq")
-    if not prereq_p:
-        return []
+    prereq_block = soup.find("p", class_="prereq") or soup
 
     prereqs = []
     current_group = []
+    has_links = False
     is_concurrent = False
-    last_was_course = False
 
-    for node in prereq_p.descendants:
-        if isinstance(node, str) and 'or' in node.strip().lower():
-            # We're in an OR chain
+    for node in prereq_block.descendants:
+        if isinstance(node, str):
+            text = node.strip().lower()
+            if 'or' in text:
+                continue  # stay in the same OR group
+            elif 'and' in text or '.' in text:
+                if current_group:
+                    prereqs.append(set(current_group))
+                    current_group = []
             continue
 
         if node.name == "a":
-            code = node.get("data-group", "").replace("code:", "").strip()
-            if not code:
+            has_links = True
+            code = node.get("data-group", "")
+            if not code.startswith("code:"):
                 continue
+            code = code.replace("code:", "").strip()
 
+            # Check for concurrency marker
             sibling = node.find_next_sibling()
             while sibling and sibling.name == "sup":
                 if "*" in sibling.get_text():
@@ -95,23 +108,31 @@ def parse_prereq_html(html):
                 code += "*"
             current_group.append(code)
             is_concurrent = False
-            last_was_course = True
-
-        elif isinstance(node, str) and last_was_course:
-            # End of a chain (e.g. period or comma not followed by more ORs)
-            text = node.strip().lower()
-            if 'and' in text or '.' in text:
-                if current_group:
-                    prereqs.append(set(current_group))
-                    current_group = []
-            last_was_course = False
 
     if current_group:
         prereqs.append(set(current_group))
 
+    # Fallback for plain-text descriptions if no <a> tags found
+    if not has_links and not prereqs:
+        if "prerequisite" in html.lower():
+            found_groups = re.findall(r"(CSCI|MATH|APMA|DATA|ENGN)\s?\d{4}(\*?)", html)
+            codes = set()
+            for subject, star in found_groups:
+                course = f"{subject} {star if star else ''}".strip()
+                codes.add(course)
+            if codes:
+                prereqs.append(codes)
+
     return prereqs
 
 def fetch_course_details(crn, srcdb, course_code):
+    '''loops through each course in a JSON for a semeester and sends post request 
+    for each course. Calls on parse_prereq_html() to parse through the JSON
+    '''
+
+    if crn is None:
+        raise ValueError(f"Missing CRN for {course_code} in {srcdb}")
+
     detail_path = os.path.join(details_base_path, f"{course_code.replace(' ', '_')}-{srcdb}.json")
 
     def should_refresh(data):
@@ -173,8 +194,10 @@ for semester, srcdb in semester_to_srcdb.items():
         course_sections[course_code].append(item)
 
     for course_code, sections in course_sections.items():
-        # Pick the first section with "no" starting with "S" (i.e. a lecture section)
-        lecture = next((sec for sec in sections if sec.get("no", "").startswith("S")), None)
+        
+        # iterate through EACH section, and pick the first section with "no" starting with "S" 
+        # (AKA lecture section) with a valid CRN
+        lecture = next((sec for sec in sections if sec.get("no", "").startswith("S") and sec.get("crn")), None)
         if not lecture:
             continue
 
@@ -187,10 +210,13 @@ for semester, srcdb in semester_to_srcdb.items():
             detail_data = fetch_course_details(crn, srcdb, course_code)
             prereq_html = detail_data.get("registration_restrictions", "")
 
-            prereq_html = detail_data.get("registration_restrictions", "")
             if not prereq_html:
-                prereq_html = detail_data.get("description", "")
-            
+                desc = detail_data.get("description", "")
+                if "prereq" in desc.lower():
+                    prereq_html = desc
+                else:
+                    prereq_html = ""
+
             parsed_prereqs = parse_prereq_html(prereq_html)
 
             match = next((row for row in output_rows if row[0] == course_code), None)
@@ -200,6 +226,7 @@ for semester, srcdb in semester_to_srcdb.items():
 
             idx = header.index(semester)
             match[idx] = str(parsed_prereqs)
+            # match[idx] = "[" + ", ".join([str(group) for group in parsed_prereqs]) + "]" if parsed_prereqs else ""
             print(f"[OK] {course_code} ({semester}) → {parsed_prereqs}")
         except Exception as e:
             print(f"[ERROR] {course_code} ({semester}): {e}")
