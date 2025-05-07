@@ -52,7 +52,19 @@ input_file = "csci_prereqs.csv"
 output_file = "csci_prereqs_with_non_csci.csv"
 os.makedirs("cache/search_non_csci", exist_ok=True)
 
-# === Step 1: Parse existing file and collect non-CSCI prereqs ===
+# === Step 1a: store all the non-csci courses that can count as electives ===
+elective_courses = {
+    "APMA 1160", "APMA 1690", "APMA 1170", "APMA 1200", "APMA 1210", "APMA 1360", "APMA 1650", "APMA 1655",
+    "APMA 1660", "APMA 1670", "APMA 1710", "APMA 1720", "APMA 1740", "APMA 1910", "APMA 1930W", "APMA 1930X",
+    "PHP2630", "PHP2650", "CLPS 1211", "CLPS 1291", "CLPS 1342", "CLPS 1350", "CLPS 1491", "CLPS 1520",
+    "CLPS 1950", "DATA 1030", "DATA 1340", "DATA 1080", "DEVL 1810", "EEPS 1340", "EEPS 1720", "ECON 1490",
+    "ECON 1870", "ENGN 1010", "ENGN 1570", "ENGN 1580", "ENGN 1600", "ENGN 1610", "ENGN 1630", "ENGN 1640",
+    "ENGN 1650", "ENGN 1660", "ENGN 1800", "ENGN 1931J", "ENGN 1931T", "ENGN 2520", "IAPA 1701A", "IAPA 1801",
+    "MUSC 1210", "NEUR 1440", "NEUR 1660", "PHIL 1630", "PHIL 1635", "PHIL 1880", "PHIL 1855", "PHYS 1600",
+    "PHYS 2550", "PHP 1855", "PLCY 1702X"
+}
+
+# === Step 1b: Parse CSCI csv, collect non-CSCI courses that are prereqs for CSCI courses ===
 non_csci_courses = set() # continuously add to this set as we find non csci courses in csv
 existing_rows = []
 existing_codes = set()
@@ -98,6 +110,7 @@ with open(input_file, newline='') as f:
                         if cleaned and not cleaned.startswith("CSCI"):
                             non_csci_courses.add(cleaned)
 
+non_csci_courses.update(elective_courses) # add set of elective courses to the ones found in the csv
 print(f"✅ Found {len(non_csci_courses)} unique non-CSCI prerequisites.")
 
 # === Step 2: Query API with caching ===
