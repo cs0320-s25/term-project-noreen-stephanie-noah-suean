@@ -165,7 +165,7 @@ export default function Sidebar(props: SidebarProps) {
               <h3>Loading your progress...</h3>
             ) : (
               <h3>
-                {numCompleted} out of {numRequired} courses completed!
+                {numCompleted} out of {numRequired} courses in planner!
               </h3>
             )}
           </div>

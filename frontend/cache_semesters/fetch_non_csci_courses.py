@@ -5,6 +5,14 @@ import requests
 import time
 import ast
 
+# this script searches up which semesters non-csci courses are offered from fall 21-spring 26
+# so that the frontend can populate non-csci courses that cs students may take. 
+#
+# There are 2 types of non-csci courses, all of which are stored in non_csci_courses: 
+# 1) the first way is from loop through the csci_prereqs.csv and adding all the 
+# prereqs that are non-csci courses. 
+# 2) non-csci elective courses, which are stored as a static set below (elective_courses)
+
 cookies = {
     'AMCV_4D6368F454EC41940A4C98A6%40AdobeOrg': '179643557%7CMCIDTS%7C20146%7CMCMID%7C35620687361685143708671614397990958274%7CMCAID%7CNONE%7CMCOPTOUT-1740540362s%7CNONE%7CvVersion%7C5.5.0',
     '__zlcmid': '1QxnVZPFFXDFoMj',
