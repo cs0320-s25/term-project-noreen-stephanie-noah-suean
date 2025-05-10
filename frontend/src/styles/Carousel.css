@@ -46,7 +46,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 250px; /* fixed size when sidebar expanded */
+  width: 17vw;
   min-height: 400px;
   background-color: #e4e4e4;
   border: 3px #e4e4e4 solid;
@@ -59,7 +59,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 300px; /* fixed size when sidebar collapsed */
+  width: 20vw; /* fixed size when sidebar collapsed */
   min-height: 400px;
   background-color: #e4e4e4;
   border: 3px #e4e4e4 solid;
