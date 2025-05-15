@@ -1,0 +1,135 @@
+.sidebar {
+  min-height: 100vh;
+  height: 140vh;
+  background-color: #213333;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  border-right: 5px solid rgba(0, 0, 0, 0.1);
+  align-items: center;
+  transition: width 0.3s ease;
+  overflow-x: hidden;
+}
+
+.sidebar-expanded {
+  width: 20vw;
+}
+
+.sidebar-collapsed {
+  width: 6vw;
+  border-right: 1px black solid;
+}
+
+.header-row {
+  padding: 1rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-row.collapsed {
+  justify-content: center;
+}
+
+.logo-title {
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+  color: white;
+}
+
+.logo-title.collapsed {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.nav-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-right: 5px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.sidebar button {
+  background-color: #213333;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.concentration-dropdown {
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 50px;
+  border: 1px solid #213333;
+  width: 15vw;
+  background-color: #d6dadd;
+  color: black;
+  font-family: "khula", sans-serif;
+}
+
+.concentration-req-container {
+  margin-top: 1rem;
+}
+
+.concentration-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0.25rem 0;
+  padding-left: 0.5rem;
+  background-color: #d6dadd;
+  border: #213333 solid 3px;
+}
+.concentration-row {
+  display: flex;
+  gap: 8px;
+  padding: 0.25rem 0;
+  padding-left: 0.5rem;
+  flex-wrap: initial;
+}
+.expand-button {
+  width: 30px;
+  height: 30px;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  cursor: pointer;
+}
+
+.button-icon {
+  fill: white;
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.requirement-list {
+  border-radius: 4px;
+  font-weight: bold;
+  line-height: 1.8;
+}
+.requirement-list-container {
+  display: flex;
+  align-items: left;
+  justify-content: left;
+  padding: 0;
+}
+
+.requirement_completed {
+  color: #3a5e42d2;
+}
+.progress-check {
+  color: #d6dadd;
+}
+.cannot-list {
+  color: #ac5a5ad2;
+}
